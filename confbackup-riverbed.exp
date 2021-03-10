@@ -1,0 +1,37 @@
+#!/bin/sh
+# \
+exec /usr/bin/expect -- "$0" ${1+"$@"}
+
+exp_version -exit 5.0
+
+if {$argc==0} {
+    send_user "usage: $argv0 host port username password \n\n"
+    send_user "host            - ip / dns hostname\n"
+    send_user "port            - telnet port\n"
+    send_user "username        - telnet username\n"
+    send_user "password        - telnet password\n"
+    exit
+}
+
+set HOST [lindex $argv 0]
+set PORT [lindex $argv 1]
+set USERNAME [lindex $argv 2]
+set PASSWORD [lindex $argv 3]
+set DATE [clock format [clock seconds] -format %Y-%m-%d-%H-%M]
+
+match_max 20000
+
+spawn ssh -p $PORT $USERNAME@$HOST
+
+expect "password: "
+send "$PASSWORD\r"
+expect "> "
+send "enable\r"
+expect "# "
+send "show configuration full\r"
+
+expect {
+    "lines ?????" {send -- " "; exp_continue}
+    "*?2626#*" {send -- "exit \r"}
+}
+
