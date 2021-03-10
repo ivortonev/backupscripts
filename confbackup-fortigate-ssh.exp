@@ -1,0 +1,40 @@
+#!/bin/sh
+# \
+exec /usr/bin/expect -- "$0" ${1+"$@"}
+
+exp_version -exit 5.0
+
+if {$argc==0} {
+    send_user "usage: $argv0 host port username password ftpserver ftpuser ftppassword vdom\n\n"
+    send_user "host            - ip / dns hostname\n"
+    send_user "port            - ssh port\n"
+    send_user "username        - ssh username\n"
+    send_user "password        - ssh password\n"
+    send_user "ftp_server      - ftp server hostname/ip address\n"
+    send_user "ftpuser         - ftp user name\n"
+    send_user "ftppassword     - ftp user password\n"
+    send_user "vdom            - VDOM FW\n\n"
+    exit
+}
+
+set HOST [lindex $argv 0]
+set PORT [lindex $argv 1]
+set USERNAME [lindex $argv 2]
+set PASSWORD [lindex $argv 3]
+set FTPSERVER [lindex $argv 4]
+set FTPUSER [lindex $argv 5]
+set FTPPASS [lindex $argv 6]
+set VDOM [lindex $argv 7]
+set DATE [clock format [clock seconds] -format %Y-%m-%d-%H-%M]
+
+
+spawn ssh -p $PORT $USERNAME@$HOST
+
+expect "password:"
+send "$PASSWORD\r"
+expect "#"
+send "config vdom \r"
+send "edit $VDOM \r"
+send "execute backup full-config ftp $HOST-$VDOM-$DATE.conf $FTPSERVER $FTPUSER $FTPPASS\r"
+expect "#"
+send "quit\r"
