@@ -1,0 +1,48 @@
+#!/bin/sh
+# \
+exec /usr/bin/expect -- "$0" ${1+"$@"}
+
+exp_version -exit 5.0
+
+if {$argc==0} {
+    send_user "usage: $argv0 host port username password enable ftpserver ftpusser ftppassword\n\n"
+    send_user "host            - ip / dns hostname\n"
+    send_user "port            - ssh port\n"
+    send_user "username        - ssh username\n"
+    send_user "password        - ssh password\n"
+    send_user "enable          - enable password\n"
+    send_user "ftpserver       - ftp ip address\n\n"
+    send_user "ftpusser        - ftp user name\n\n"
+    send_user "ftppassword     - ftp password\n\n"
+    exit
+}
+
+set HOST [lindex $argv 0]
+set PORT [lindex $argv 1]
+set USERNAME [lindex $argv 2]
+set PASSWORD [lindex $argv 3]
+set ENAPASSWORD [lindex $argv 4]
+set FTPSERVER [lindex $argv 5]
+set FTPUSER [lindex $argv 6]
+set FTPPASSWORD [lindex $argv 7]
+set DATE [clock format [clock seconds] -format %Y-%m-%d-%H-%M]
+
+
+spawn ssh -p $PORT $USERNAME@$HOST
+
+expect "Password: "
+send "$PASSWORD\r"
+expect ">"
+send "enable\r"
+expect "Password: "
+send "$ENAPASSWORD\r"
+expect "#"
+send "copy running-config ftp://$FTPUSER:$FTPPASSWORD@$FTPSERVER/$HOST-$DATE.conf\r"
+expect "]?"
+send "\r"
+expect "]?"
+send "\r"
+expect "#"
+send "wr\r"
+expect "#"
+send "quit\r"
