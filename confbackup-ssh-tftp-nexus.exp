@@ -1,0 +1,37 @@
+#!/bin/sh
+# \
+exec /usr/bin/expect -- "$0" ${1+"$@"}
+
+exp_version -exit 5.0
+
+if {$argc==0} {
+    send_user "usage: $argv0 host port username password enable tftpserver\n\n"
+    send_user "host            - ip / dns hostname\n"
+    send_user "port            - ssh port\n"
+    send_user "username        - ssh username\n"
+    send_user "password        - ssh password\n"
+    send_user "enable          - enable password\n"
+    send_user "tftpserver      - tftp ip address\n\n"
+    exit
+}
+
+set HOST [lindex $argv 0]
+set PORT [lindex $argv 1]
+set USERNAME [lindex $argv 2]
+set PASSWORD [lindex $argv 3]
+set ENAPASSWORD [lindex $argv 4]
+set TFTPSERVER [lindex $argv 5]
+set DATE [clock format [clock seconds] -format %Y-%m-%d-%H-%M]
+
+
+spawn ssh -p $PORT $USERNAME@$HOST
+
+expect "Password: "
+send "$PASSWORD\r"
+expect "# "
+send "copy running-config tftp://$TFTPSERVER/$HOST-$DATE.conf\r"
+expect "): "
+send "\r"
+expect "# "
+send "copy running-config startup-config\r"
+expect "# "
