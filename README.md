@@ -1,1 +1,3 @@
 # backupscripts
+
+deps: expect, xz
