@@ -11,6 +11,7 @@ if {$argc==0} {
     send_user "username        - ssh username\n"
     send_user "password        - ssh password\n"
     send_user "scpserver       - scp server hostname/ip address\n"
+    send_user "scpuser         - scp username\n"
     exit
 }
 
@@ -19,6 +20,7 @@ set PORT [lindex $argv 1]
 set USERNAME [lindex $argv 2]
 set PASSWORD [lindex $argv 3]
 set SCPSERVER [lindex $argv 4]
+set SCPUSER [lindex $argv 5]
 set DATE [clock format [clock seconds] -format %Y-%m-%d-%H-%M]
 
 set timeout 600
@@ -34,7 +36,7 @@ sleep 3
 expect "(tmos)#"
 send "bash \r"
 expect "~ #"
-send "scp /var/tmp/$HOST-$DATE.ucs f5conf@$SCPSERVER: \r"
+send "scp /var/tmp/$HOST-$DATE.ucs $SCPUSER@$SCPSERVER: \r"
 expect "~ #"
 send "rm -f /var/tmp/*ucs \r"
 expect "~ #"
