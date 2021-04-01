@@ -5,7 +5,7 @@ exec /usr/bin/expect -- "$0" ${1+"$@"}
 exp_version -exit 5.0
 
 if {$argc==0} {
-    send_user "usage: $argv0 host port username password scpserver\n\n"
+    send_user "usage: $argv0 host port username password scpserver scpuser\n\n"
     send_user "host            - ip / dns hostname\n"
     send_user "port            - ssh port\n"
     send_user "username        - ssh username\n"
