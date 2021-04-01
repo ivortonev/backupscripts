@@ -1,0 +1,43 @@
+#!/bin/sh
+# \
+exec /usr/bin/expect -- "$0" ${1+"$@"}
+
+exp_version -exit 5.0
+
+if {$argc==0} {
+    send_user "usage: $argv0 host port username password scpserver\n\n"
+    send_user "host            - ip / dns hostname\n"
+    send_user "port            - ssh port\n"
+    send_user "username        - ssh username\n"
+    send_user "password        - ssh password\n"
+    send_user "scpserver       - scp server hostname/ip address\n"
+    exit
+}
+
+set HOST [lindex $argv 0]
+set PORT [lindex $argv 1]
+set USERNAME [lindex $argv 2]
+set PASSWORD [lindex $argv 3]
+set SCPSERVER [lindex $argv 4]
+set DATE [clock format [clock seconds] -format %Y-%m-%d-%H-%M]
+
+set timeout 600
+
+spawn ssh -p $PORT $USERNAME@$HOST
+
+expect "Password:"
+send "$PASSWORD\r"
+expect "(tmos)#"
+send "save /sys ucs /var/tmp/$HOST-$DATE.ucs \r"
+expect "is saved."
+sleep 3
+expect "(tmos)#"
+send "bash \r"
+expect "~ #"
+send "scp /var/tmp/$HOST-$DATE.ucs f5conf@$SCPSERVER: \r"
+expect "~ #"
+send "rm -f /var/tmp/*ucs \r"
+expect "~ #"
+send "exit\r"
+expect "(tmos)#"
+send "quit\r"
