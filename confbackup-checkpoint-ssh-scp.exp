@@ -1,0 +1,47 @@
+#!/bin/sh
+# \
+exec /usr/bin/expect -- "$0" ${1+"$@"}
+
+exp_version -exit 5.0
+
+if {$argc==0} {
+    send_user "usage: $argv0 host port username password scpserver scpuser\n\n"
+    send_user "host            - ip / dns hostname\n"
+    send_user "port            - ssh port\n"
+    send_user "username        - ssh username\n"
+    send_user "password        - ssh password\n"
+    send_user "scpserver       - scp server hostname/ip address\n"
+    send_user "scpuser         - scp user name\n"
+    exit
+}
+
+set HOST [lindex $argv 0]
+set PORT [lindex $argv 1]
+set USERNAME [lindex $argv 2]
+set PASSWORD [lindex $argv 3]
+set SCPSERVER [lindex $argv 4]
+set SCPUSER [lindex $argv 5]
+set DATE [clock format [clock seconds] -format %Y-%m-%d-%H-%M]
+
+set timeout 900
+
+spawn ssh -p $PORT $USERNAME@$HOST
+
+expect "password: "
+send "$PASSWORD\r"
+expect "# "
+send "cd tmp\r"
+expect "# "
+send "cpstop\r"
+expect "# "
+send "/opt/CPsuite-R80.30/fw1/bin/upgrade_tools/migrate export $HOST-$DATE\r"
+expect "\[n\]\? "
+send "y\r"
+expect "# "
+send "cpstart\r"
+expect "# "
+send "scp $HOST-$DATE.tgz $SCPUSER@$SCPSERVER: \r"
+expect "# "
+send "rm -f $HOST-$DATE.tgz \r"
+expect "# "
+send "exit\r"
